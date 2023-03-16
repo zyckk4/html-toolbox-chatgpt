@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>石头剪刀布游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .choices {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .choice-btn {
+            background-color: #4caf50;
+            border: none;
+            color: white;
+            font-size: 18px;
+            padding: 10px 24px;
+            margin: 0 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .choice-btn:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>石头剪刀布游戏</h1>
+        <div class="choices">
+            <button class="choice-btn" id="rock">石头</button>
+            <button class="choice-btn" id="scissors">剪刀</button>
+            <button class="choice-btn" id="paper">布</button>
+        </div>
+        <div class="result">
+            <p id="result-text">选择你的手势，开始游戏！</p>
+        </div>
+        <div class="scoreboard">
+            <p id="wins">胜场数: 0</p>
+            <p id="win-rate">胜率: 0%</p>
+        </div>
+
+    </div>
+    <script>
+        const rockBtn = document.getElementById("rock");
+        const scissorsBtn = document.getElementById("scissors");
+        const paperBtn = document.getElementById("paper");
+        const resultText = document.getElementById("result-text");
+
+        rockBtn.addEventListener("click", () => playGame("石头"));
+        scissorsBtn.addEventListener("click", () => playGame("剪刀"));
+        paperBtn.addEventListener("click", () => playGame("布"));
+        let wins = 0;
+        let gamesPlayed = 0;
+
+        function updateScoreboard(result) {
+            if (result.includes("你赢了")) {
+                wins++;
+            }
+            gamesPlayed++;
+
+            const winRate = ((wins / gamesPlayed) * 100).toFixed(2);
+            document.getElementById("wins").textContent = `胜场数: ${wins}`;
+            document.getElementById("win-rate").textContent = `胜率: ${winRate}%`;
+        }
+
+        function playGame(playerChoice) {
+            const computerChoice = getComputerChoice();
+            const result = getResult(playerChoice, computerChoice);
+            resultText.textContent = result;
+            updateScoreboard(result);
+        }
+
+        function getComputerChoice() {
+            const choices = ["石头", "剪刀", "布"];
+            const randomIndex = Math.floor(Math.random() * 3);
+            return choices[randomIndex];
+        }
+
+        function getResult(playerChoice, computerChoice) {
+            if (playerChoice === computerChoice) {
+                return `平局！你们都选择了${playerChoice}。`;
+            }
+
+            if (
+                (playerChoice === "石头" && computerChoice === "剪刀") ||
+                (playerChoice === "剪刀" && computerChoice === "布") ||
+                (playerChoice === "布" && computerChoice === "石头")
+            ) {
+                return `你赢了！${playerChoice}击败了${computerChoice}。`;
+            } else {
+                return `你输了！${computerChoice}击败了${playerChoice}。`;
+            }
+        }
+
+    </script>
+</body>
+
+</html>

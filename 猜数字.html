@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜数字游戏</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f2f2f2;
+            text-align: center;
+            padding: 50px;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 60px;
+            padding: 5px 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        button {
+            margin-left: 10px;
+            padding: 6px 12px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition-duration: 0.4s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            font-size: 18px;
+            margin-top: 30px;
+        }
+
+        #message {
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>猜数字游戏</h1>
+    <p>猜一个在1到100之间的数字。</p>
+    <p>请输入要猜测的范围：</p>
+    <label for="minRange">最小值：</label>
+    <input type="number" id="minRange" value="1">
+    <label for="maxRange">最大值：</label>
+    <input type="number" id="maxRange" value="100">
+    <button onclick="startGame()">开始游戏</button>
+    <br><br>
+    <input type="number" id="userGuess" min="1" max="100">
+    <button onclick="checkGuess()">提交</button>
+    <p id="message"></p>
+    <script>
+        let secretNumber;
+        let attempts = 0;
+
+        function startGame() {
+            let minRange = parseInt(document.getElementById("minRange").value);
+            let maxRange = parseInt(document.getElementById("maxRange").value);
+
+            if (minRange >= maxRange) {
+                showMessage("最小值必须小于最大值，请重新输入。");
+                return;
+            }
+
+            secretNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+            attempts = 0;
+            showMessage("游戏已开始，请输入您的猜测并点击提交。");
+        }
+
+        function checkGuess() {
+            if (secretNumber === undefined) {
+                showMessage("请先点击开始游戏。");
+                return;
+            }
+
+            let userGuess = parseInt(document.getElementById("userGuess").value);
+            attempts++;
+
+            if (userGuess === secretNumber) {
+                showMessage(`恭喜你，猜对了！尝试了${attempts}次。`);
+            } else if (userGuess < secretNumber) {
+                showMessage("太低了，请再试一次。");
+            } else {
+                showMessage("太高了，请再试一次。");
+            }
+        }
+
+        function showMessage(message) {
+            document.getElementById("message").innerHTML = message;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点击速度检测工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #clickArea {
+            width: 300px;
+            height: 150px;
+            background-color: #4CAF50;
+            color: white;
+            line-height: 150px;
+            font-size: 24px;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 20px;
+        }
+
+        #restartButton {
+            width: 150px;
+            height: 40px;
+            background-color: #2196F3;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            text-align: center;
+            line-height: 40px;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>点击速度检测工具</h1>
+    <div id="clickArea" onclick="startTest()">点击这里开始测试！</div>
+    <div id="restartButton" onclick="resetTest()">重新开始</div>
+    <p>自定义秒数：<input type="number" id="customSeconds" value="10" min="1" max="999" /></p>
+    <p>倒计时：<span id="timer">10</span> 秒</p>
+    <p>点击次数：<span id="clickCount">0</span></p>
+    <p>点击速度（每秒）：<span id="clickSpeed">0</span></p>
+    <script>
+        let clickCount = 0;
+        let startTime = null;
+        let elapsedTime = 0;
+        let timer;
+        let countdown;
+
+        function startTest() {
+            if (startTime === null) {
+                timer = parseInt(document.getElementById('customSeconds').value);
+                document.getElementById('timer').innerText = timer;
+                startTime = new Date().getTime();
+                countdown = setInterval(updateTimer, 1000);
+                const clickArea = document.getElementById('clickArea');
+                clickArea.onclick = recordClick;
+                clickArea.ontouchstart = recordClick; // 触屏点击事件
+                clickArea.innerText = ''; // 隐藏按钮上的文字
+            }
+        }
+
+        function recordClick() {
+            clickCount++;
+            updateClickCount();
+            calculateClickSpeed();
+        }
+
+        function updateClickCount() {
+            const clickCountElement = document.getElementById('clickCount');
+            clickCountElement.innerText = clickCount;
+        }
+
+        function calculateClickSpeed() {
+            elapsedTime = (new Date().getTime() - startTime) / 1000;
+            const clickSpeedElement = document.getElementById('clickSpeed');
+            clickSpeedElement.innerText = (clickCount / elapsedTime).toFixed(2);
+        }
+
+        function updateTimer() {
+            timer--;
+            const timerElement = document.getElementById('timer');
+            timerElement.innerText = timer;
+
+            if (timer === 0) {
+                endTest();
+            }
+        }
+
+        function endTest() {
+            clearInterval(countdown);
+            const clickArea = document.getElementById('clickArea');
+            clickArea.onclick = null;
+            clickArea.ontouchstart = null; // 移除触屏点击事件监听器
+            clickArea.style.backgroundColor = '#ccc';
+            clickArea.innerText = '测试结束';
+            calculateClickSpeed(); // 在测试结束后更新平均点击速度
+        }
+
+        function resetTest() {
+            clearInterval(countdown);
+            clickCount = 0;
+            startTime = null;
+            elapsedTime = 0;
+            document.getElementById('clickArea').style.backgroundColor = '#4CAF50';
+            document.getElementById('clickArea').innerText = '点击这里开始测试！';
+            document.getElementById('clickArea').onclick = startTest;
+            updateClickCount();
+            calculateClickSpeed();
+            timer = parseInt(document.getElementById('customSeconds').value);
+            document.getElementById('timer').innerText = timer;
+        }
+    </script>
+</body>
+
+</html>

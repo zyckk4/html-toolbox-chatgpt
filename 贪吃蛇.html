@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>贪吃蛇小游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #222;
+            margin: 0;
+            color: #fff;
+        }
+
+        canvas {
+            border: 1px solid #fff;
+            margin-bottom: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="game" width="320" height="320"></canvas>
+    <div class="controls">
+        <div>
+            <label for="speed">速度：</label>
+            <input type="range" id="speed" min="50" max="500" value="100" style="width: 50%;">
+        </div>
+        <button id="pause">暂停</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('game');
+        const context = canvas.getContext('2d');
+        const gridSize = 20;
+        let snakeSpeed = 100;
+        let snake = [{ x: 160, y: 160 }];
+        let food;
+        let velocity = { x: 0, y: -gridSize };
+        let lastTime = 0;
+        let paused = false;
+        let score = 0;
+
+        function main(currentTime) {
+            if (!paused && currentTime - lastTime > snakeSpeed) {
+                lastTime = currentTime;
+                update();
+                draw();
+            }
+            requestAnimationFrame(main);
+        }
+
+        let highScore = 0;
+
+        function update() {
+            const head = { x: snake[0].x + velocity.x, y: snake[0].y + velocity.y };
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                food = generateFood();
+                score += 10;
+            } else {
+                snake.pop();
+            }
+
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || checkCollision(head)) {
+                // 更新历史最高分数
+                if (score > highScore) {
+                    highScore = score;
+                }
+                snake = [{ x: 160, y: 160 }];
+                velocity = { x: 0, y: -gridSize };
+                score = 0;
+            }
+        }
+
+        function drawSnakePart(part, isHead) {
+            if (isHead) {
+                context.fillStyle = 'darkgreen';
+                context.beginPath();
+                context.arc(part.x + gridSize / 2, part.y + gridSize / 2, gridSize / 2, 0, 2 * Math.PI);
+                context.fill();
+
+                context.fillStyle = 'black';
+                let eyeSize = gridSize / 4;
+                let eyeOffsetX = gridSize / 4;
+                let eyeOffsetY = gridSize / 4;
+
+                if (velocity.x === gridSize) {
+                    // 向右
+                    context.beginPath();
+                    context.arc(part.x + gridSize - eyeOffsetX, part.y + eyeOffsetY, eyeSize / 2, 0, 2 * Math.PI);
+                    context.fill();
+                    context.beginPath();
+                    context.arc(part.x + gridSize - eyeOffsetX, part.y + gridSize - eyeOffsetY, eyeSize / 2, 0, 2 * Math.PI);
+                    context.fill();
+                } else if (velocity.x === -gridSize) {
+                    // 向左
+                    context.beginPath();
+                    context.arc(part.x + eyeOffsetX, part.y + eyeOffsetY, eyeSize / 2, 0, 2 * Math.PI);
+                    context.fill();
+                    context.beginPath();
+                    context.arc(part.x + eyeOffsetX, part.y + gridSize - eyeOffsetY, eyeSize / 2, 0, 2 * Math.PI);
+                    context.fill();
+                } else if (velocity.y === gridSize) {
+                    // 向下
+                    context.beginPath();
+                    context.arc(part.x + eyeOffsetX, part.y + gridSize - eyeOffsetY, eyeSize / 2, 0, 2 * Math.PI);
+                    context.fill();
+                    context.beginPath();
+                    context.arc(part.x + gridSize - eyeOffsetX, part.y + gridSize - eyeOffsetY, eyeSize / 2, 0, 2 * Math.PI);
+                    context.fill();
+                } else {
+                    // 向上
+                    context.beginPath();
+                    context.arc(part.x + eyeOffsetX, part.y + eyeOffsetY, eyeSize / 2, 0, 2 * Math.PI);
+                    context.fill();
+                    context.beginPath();
+                    context.arc(part.x + gridSize - eyeOffsetX, part.y + eyeOffsetY, eyeSize / 2, 0, 2 * Math.PI);
+                    context.fill();
+                }
+            } else {
+                context.fillStyle = 'lime';
+                context.fillRect(part.x, part.y, gridSize, gridSize);
+            }
+        }
+
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制蛇
+            for (let i = 0; i < snake.length; i++) {
+                drawSnakePart(snake[i], i === 0);
+            }
+
+            // 绘制食物
+            context.fillStyle = 'red';
+            context.fillRect(food.x, food.y, gridSize, gridSize);
+
+            // 绘制当前得分
+            context.fillStyle = 'white';
+            context.font = '16px Arial';
+            context.fillText(`分数: ${score}`, 10, 20);
+
+            // 绘制历史最高分数
+            context.fillText(`历史最高分数: ${highScore}`, 10, 40);
+        }
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'p') {
+                paused = !paused;
+                document.getElementById('pause').textContent = paused ? '继续' : '暂停';
+            }
+
+            if (paused) return; // 暂停时禁止调整蛇头方向
+
+            if ((event.key === 'ArrowUp' || event.key === 'w') && velocity.y === 0) velocity = { x: 0, y: -gridSize };
+            if ((event.key === 'ArrowDown' || event.key === 's') && velocity.y === 0) velocity = { x: 0, y: gridSize };
+            if ((event.key === 'ArrowLeft' || event.key === 'a') && velocity.x === 0) velocity = { x: -gridSize, y: 0 };
+            if ((event.key === 'ArrowRight' || event.key === 'd') && velocity.x === 0) velocity = { x: gridSize, y: 0 };
+        });
+
+        document.getElementById('speed').addEventListener('input', (event) => {
+            snakeSpeed = 600 - event.target.value;
+        });
+
+        // 初始化速度滑块位置以匹配初始速度
+        document.getElementById('speed').value = 600 - snakeSpeed;
+
+        function generateFood() {
+            let newFood = {
+                x: Math.floor(Math.random() * canvas.width / gridSize) * gridSize,
+                y: Math.floor(Math.random() * canvas.height / gridSize) * gridSize,
+            };
+
+            // 检查食物是否在蛇身上
+            for (const part of snake) {
+                if (part.x === newFood.x && part.y === newFood.y) {
+                    return generateFood(); // 重新生成食物
+                }
+            }
+
+            return newFood;
+        }
+
+        function checkCollision(head) {
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        document.getElementById('pause').addEventListener('click', () => {
+            paused = !paused;
+            document.getElementById('pause').textContent = paused ? '继续' : '暂停';
+        });
+
+        canvas.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
+        });
+
+        canvas.addEventListener('touchmove', (event) => {
+            event.preventDefault();
+            let touchEndX = event.touches[0].clientX;
+            let touchEndY = event.touches[0].clientY;
+            let deltaX = touchEndX - touchStartX;
+            let deltaY = touchEndY - touchStartY;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0 && velocity.x === 0) {
+                    velocity = { x: gridSize, y: 0 };
+                } else if (deltaX < 0 && velocity.x === 0) {
+                    velocity = { x: -gridSize, y: 0 };
+                }
+            } else {
+                if (deltaY > 0 && velocity.y === 0) {
+                    velocity = { x: 0, y: gridSize };
+                } else if (deltaY < 0 && velocity.y === 0) {
+                    velocity = { x: 0, y: -gridSize };
+                }
+            }
+
+            touchStartX = touchEndX;
+            touchStartY = touchEndY;
+        });
+
+        food = generateFood(); // 生成初始食物
+        main();
+    </script>
+</body>
+
+</html>

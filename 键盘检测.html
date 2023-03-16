@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>键盘检测</title>
+    <style>
+        body {
+            font-family: "微软雅黑", sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            margin: 50px 0;
+            color: #4a4a4a;
+        }
+
+        p {
+            font-size: 18px;
+            color: #4a4a4a;
+        }
+
+        #output {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #333;
+            border: 2px solid #4a4a4a;
+            border-radius: 5px;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+    </style>
+    <script>
+        var pressedKeys = {};
+        var lastPressedKey = "";
+        var lastPressedKeyCode = "";
+
+        function keyDown(event) {
+            var key = event.key;
+            var code = event.code;
+            pressedKeys[code] = key;
+            lastPressedKey = key;
+            lastPressedKeyCode = code;
+            displayKeys();
+        }
+
+        function keyUp(event) {
+            var code = event.code;
+            delete pressedKeys[code];
+            displayKeys();
+        }
+
+        function displayKeys() {
+            var output = document.getElementById("output");
+            var keys = Object.values(pressedKeys).join(', ');
+            output.innerHTML = "按下的键: " + keys + "<br>最后按下的键: " + lastPressedKey + " (代码: " + lastPressedKeyCode + ")";
+        }
+    </script>
+</head>
+<body onkeydown="keyDown(event)" onkeyup="keyUp(event)">
+    <h1>键盘检测</h1>
+    <p>请按下任意键：</p>
+    <div id="output"></div>
+</body>
+</html>

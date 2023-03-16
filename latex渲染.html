@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX 渲染工具</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        #output {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>LaTeX 渲染工具</h1>
+        <label>输入字体大小：
+            <input type="number" id="input-font-size" min="8" max="72" value="20">
+        </label>
+        <br>
+        <label>图片字体大小：
+            <input type="number" id="output-font-size" min="8" max="72" value="20">
+        </label>
+        <br>
+        <br>
+        <textarea id="input-latex" rows="6" cols="60" placeholder="请输入 LaTeX 代码："></textarea>
+        <br>
+        <button id="render-btn">渲染</button>
+        <div id="output"></div>
+    </div>
+    <script>
+        const inputLatex = document.getElementById("input-latex");
+        const output = document.getElementById("output");
+        const inputFontSizeInput = document.getElementById("input-font-size");
+        const outputFontSizeInput = document.getElementById("output-font-size");
+
+        inputFontSizeInput.addEventListener("change", function () {
+            inputLatex.style.fontSize = this.value + "px";
+        });
+
+        inputLatex.addEventListener("focus", function () {
+            this.placeholder = "";
+        });
+
+        inputLatex.addEventListener("blur", function () {
+            if (this.value === "") {
+                this.placeholder = "请输入 LaTeX 代码：";
+            }
+        });
+
+        document.getElementById("render-btn").addEventListener("click", function () {
+            let input = inputLatex.value;
+            let outputFontSize = outputFontSizeInput.value;
+            output.style.fontSize = outputFontSize + "px";
+            output.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetClear([output]);
+            MathJax.typesetPromise([output]).catch((err) => console.log(err));
+        });
+    </script>
+</body>
+
+</html>
