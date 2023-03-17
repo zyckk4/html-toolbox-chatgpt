@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>康威生命游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border: 1px solid black;
+        }
+
+        #controls {
+            margin-top: 15px;
+        }
+
+        button {
+            margin: 5px;
+        }
+
+        #statusIndicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>康威生命游戏</h1>
+    <canvas id="gameBoard"></canvas>
+    <div id="controls">
+        <button id="start">开始</button>
+        <button id="pause">暂停</button>
+        <button id="clear">清空</button>
+        <label>速度：</label>
+        <input type="range" id="speed" min="1" max="10" value="5">
+        <div id="statusIndicator"></div>
+        <div>
+            <label>行：</label>
+            <input type="number" id="rows" min="10" value="50">
+            <label>列：</label>
+            <input type="number" id="cols" min="10" value="50">
+            <button id="resize">调整大小</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameBoard');
+        const ctx = canvas.getContext('2d');
+        const cellSize = 10;
+        let rows = 50;
+        let cols = 50;
+        const startButton = document.getElementById('start');
+        const pauseButton = document.getElementById('pause');
+        const clearButton = document.getElementById('clear');
+        const speedInput = document.getElementById('speed');
+        const rowsInput = document.getElementById('rows');
+        const colsInput = document.getElementById('cols');
+        const resizeButton = document.getElementById('resize');
+        const statusIndicator = document.getElementById('statusIndicator');
+
+        canvas.width = cols * cellSize;
+        canvas.height = rows * cellSize;
+
+        let board = new Array(rows).fill(null).map(() => new Array(cols).fill(false));
+        let gameInterval;
+        let isRunning = false;
+
+        canvas.addEventListener('click', (event) => {
+            if (!isRunning) {
+                const x = Math.floor(event.offsetX / cellSize);
+                const y = Math.floor(event.offsetY / cellSize);
+                board[y][x] = !board[y][x];
+                drawBoard();
+            }
+        });
+
+        startButton.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                statusIndicator.style.backgroundColor = 'green';
+                gameInterval = setInterval(() => {
+                    updateBoard();
+                    drawBoard();
+                }, 1000 / speedInput.value);
+            }
+        });
+
+        pauseButton.addEventListener('click', () => {
+            isRunning = false;
+            statusIndicator.style.backgroundColor = 'red';
+            clearInterval(gameInterval);
+        });
+
+        clearButton.addEventListener('click', () => {
+            isRunning = false;
+            statusIndicator.style.backgroundColor = 'red';
+            clearInterval(gameInterval);
+            board = new Array(rows).fill(null).map(() => new Array(cols).fill(false));
+            drawBoard();
+        });
+
+        speedInput.addEventListener('input', () => {
+            if (isRunning) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(() => {
+                    updateBoard();
+                    drawBoard();
+                }, 1000 / speedInput.value);
+            }
+        });
+
+        resizeButton.addEventListener('click', () => {
+            isRunning = false;
+            statusIndicator.style.backgroundColor = 'red';
+            clearInterval(gameInterval);
+            rows = parseInt(rowsInput.value);
+            cols = parseInt(colsInput.value);
+            canvas.width = cols * cellSize;
+            canvas.height = rows * cellSize;
+            board = new Array(rows).fill(null).map(() => new Array(cols).fill(false));
+            drawBoard();
+        });
+        function updateBoard() {
+            const newBoard = new Array(rows).fill(null).map(() => new Array(cols).fill(false));
+
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    const aliveNeighbors = countAliveNeighbors(y, x);
+                    const currentState = board[y][x];
+
+                    if (currentState && (aliveNeighbors === 2 || aliveNeighbors === 3)) {
+                        newBoard[y][x] = true;
+                    } else if (!currentState && aliveNeighbors === 3) {
+                        newBoard[y][x] = true;
+                    } else {
+                        newBoard[y][x] = false;
+                    }
+                }
+            }
+            board = newBoard;
+        }
+
+        function countAliveNeighbors(y, x) {
+            let count = 0;
+
+            for (let yOffset = -1; yOffset <= 1; yOffset++) {
+                for (let xOffset = -1; xOffset <= 1; xOffset++) {
+                    const newY = y + yOffset;
+                    const newX = x + xOffset;
+
+                    if (newY >= 0 && newY < rows && newX >= 0 && newX < cols && !(yOffset === 0 && xOffset === 0)) {
+                        count += board[newY][newX] ? 1 : 0;
+                    }
+                }
+            }
+            return count;
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (board[y][x]) {
+                        ctx.fillStyle = 'black';
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+
+            ctx.strokeStyle = 'gray';
+            ctx.lineWidth = 0.5;
+
+            for (let y = 0; y < rows; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * cellSize);
+                ctx.lineTo(canvas.width, y * cellSize);
+                ctx.stroke();
+            }
+
+            for (let x = 0; x < cols; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * cellSize, 0);
+                ctx.lineTo(x * cellSize, canvas.height);
+                ctx.stroke();
+            }
+        }
+
+        drawBoard();
+    </script>
+</body>
+
+</html>
